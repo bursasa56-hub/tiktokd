@@ -2,11 +2,11 @@ services:
   bot:
     build: .
     restart: unless-stopped
-    env_file:
-      - .env
     environment:
       DATA_DIR: /data
       TELEGRAM_API_URL: http://telegram-bot-api:8081
+      BOT_TOKEN: ${BOT_TOKEN}
+      ADMIN_IDS: ${ADMIN_IDS}
     volumes:
       - bot_data:/data
     depends_on:
