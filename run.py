@@ -4,10 +4,12 @@ import sys
 
 from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
+from aiogram.client.session.aiohttp import AiohttpSession
+from aiogram.client.telegram import TelegramAPIServer
 from aiogram.enums import ParseMode
 from aiogram.fsm.storage.memory import MemoryStorage
 
-from app.config import BOT_TOKEN, DATA_DIR, DOWNLOAD_DIR
+from app.config import BOT_TOKEN, DATA_DIR, DOWNLOAD_DIR, TELEGRAM_API_URL
 from app.db import init_db
 from app.handlers import setup_routers
 
@@ -20,9 +22,14 @@ async def main() -> None:
     DOWNLOAD_DIR.mkdir(parents=True, exist_ok=True)
     await init_db()
 
+    session = None
+    if TELEGRAM_API_URL:
+        session = AiohttpSession(api=TelegramAPIServer.from_base(TELEGRAM_API_URL))
+
     bot = Bot(
         token=BOT_TOKEN,
         default=DefaultBotProperties(parse_mode=ParseMode.HTML),
+        session=session,
     )
     dp = Dispatcher(storage=MemoryStorage())
     dp.include_router(setup_routers())

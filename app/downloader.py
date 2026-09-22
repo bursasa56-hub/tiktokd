@@ -62,6 +62,21 @@ def _source_name(url: str) -> str:
     return "видео"
 
 
+def _limit_label() -> str:
+    return f"{TELEGRAM_MAX_BYTES // (1024 * 1024)} МБ"
+
+
+def _format_selector() -> str:
+    limit = TELEGRAM_MAX_BYTES
+    return (
+        f"bestvideo[ext=mp4][filesize<{limit}]+bestaudio[ext=m4a]/"
+        f"bestvideo[filesize<{limit}]+bestaudio/"
+        f"best[ext=mp4][filesize<{limit}]/"
+        f"best[filesize<{limit}]/"
+        "bv*+ba/b"
+    )
+
+
 def _ydl_opts(outtmpl: str) -> dict:
     return {
         "outtmpl": outtmpl,
@@ -73,15 +88,7 @@ def _ydl_opts(outtmpl: str) -> dict:
         "concurrent_fragment_downloads": 3,
         "merge_output_format": "mp4",
         "restrictfilenames": True,
-        "format": (
-            "bestvideo[ext=mp4][height<=720][filesize<48M]+bestaudio[ext=m4a]/"
-            "bestvideo[height<=720][filesize<48M]+bestaudio/"
-            "best[ext=mp4][height<=720][filesize<48M]/"
-            "best[height<=720][filesize<48M]/"
-            "best[ext=mp4][filesize<48M]/"
-            "best[filesize<48M]/"
-            "bv*+ba/b"
-        ),
+        "format": _format_selector(),
         "http_headers": {
             "User-Agent": (
                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -159,7 +166,7 @@ def _download_sync(url: str, dest_dir: Path) -> tuple[DownloadResult, list[str]]
         if size > TELEGRAM_MAX_BYTES:
             path.unlink(missing_ok=True)
             raise DownloadError(
-                "Видео слишком большое для Telegram (лимит бота — 50 МБ). "
+                f"Видео слишком большое для Telegram (лимит — {_limit_label()}). "
                 "Попробуйте другое видео или более короткое."
             )
         return DownloadResult(kind="video", title=title[:200], source=source, path=path), []
@@ -282,7 +289,7 @@ async def _fetch_tiktok(url: str, dest_dir: Path) -> DownloadResult:
                     raise DownloadError("Получен пустой файл.")
                 if len(content) > TELEGRAM_MAX_BYTES:
                     raise DownloadError(
-                        "Видео слишком большое для Telegram (лимит бота — 50 МБ). "
+                        f"Видео слишком большое для Telegram (лимит — {_limit_label()}). "
                         "Попробуйте другое видео или более короткое."
                     )
                 path.write_bytes(content)
