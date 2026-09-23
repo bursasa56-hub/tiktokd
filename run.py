@@ -24,7 +24,10 @@ async def main() -> None:
 
     session = None
     if TELEGRAM_API_URL:
-        session = AiohttpSession(api=TelegramAPIServer.from_base(TELEGRAM_API_URL))
+        session = AiohttpSession(
+            api=TelegramAPIServer.from_base(TELEGRAM_API_URL),
+            timeout=1800,
+        )
 
     bot = Bot(
         token=BOT_TOKEN,

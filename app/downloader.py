@@ -67,10 +67,14 @@ def _limit_label() -> str:
 
 
 def _format_selector() -> str:
+    # H.264 (avc1) + AAC (m4a) до 1080p — Telegram проигрывает такой MP4
+    # без перекодирования. VP9/AV1 ломают воспроизведение (только звук).
     limit = TELEGRAM_MAX_BYTES
     return (
-        f"bestvideo[ext=mp4][filesize<{limit}]+bestaudio[ext=m4a]/"
-        f"bestvideo[filesize<{limit}]+bestaudio/"
+        f"bestvideo[vcodec^=avc1][height<=1080][filesize<{limit}]+bestaudio[ext=m4a]/"
+        f"bestvideo[vcodec^=avc1][height<=1080]+bestaudio/"
+        f"bestvideo[vcodec^=avc1][filesize<{limit}]+bestaudio/"
+        f"best[vcodec^=avc1][filesize<{limit}]/"
         f"best[ext=mp4][filesize<{limit}]/"
         f"best[filesize<{limit}]/"
         "bv*+ba/b"
